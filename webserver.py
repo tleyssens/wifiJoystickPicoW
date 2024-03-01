@@ -22,7 +22,7 @@ class TestClient(WebSocketClient):
             msg = msg.decode("utf-8")
             msg = msg.split("\n")[-2]
             msg = msg.split(" ")
-            
+            print(msg[0])
             deadline = time.ticks_add(time.ticks_ms(), 300)
             
             # tires.apply_power(int(msg[0]), int(msg[1]), int(msg[2]), int(msg[3]))
@@ -30,7 +30,7 @@ class TestClient(WebSocketClient):
         except ClientClosedError:
             print("Connection close error")
             self.connection.close()
-        except e:
+        except Exception as e:
             print("exception:" + str(e) + "\n")
             raise e
                 

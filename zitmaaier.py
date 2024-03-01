@@ -40,7 +40,9 @@ def getAngle360():
 
 
 class Zitmaaier():
-    def __init__(self):
+    def __init__(self, minStuur, maxStuur):
+        self.minStuur = minStuur
+        self.maxStuur = maxStuur
         self.previousMillis = 0
         self.stuurPWM = PWM(Pin(14, Pin.OUT), freq=500, duty_u16=0)
         self.stuurDIR = Pin(15, Pin.OUT, value=0)
@@ -49,9 +51,9 @@ class Zitmaaier():
         self.vooruit = Pin(10, Pin.OUT, value=0)
         self.achteruit = Pin(11, Pin.OUT, value=0)
         #Initialize PID Controller
-        self.myPID = PID(0.7, 7, 0.01, setpoint=90, scale='us')
+        self.myPID = PID(7, 7, 0.01, setpoint=90, scale='us')
         self.myPID.auto_mode = True
-        self.myPID.output_limits = [-90, 90]
+        self.myPID.output_limits = [-65535, 65535]
         self.myPID.sample_time = 20
 
     def process(self):
@@ -66,17 +68,21 @@ class Zitmaaier():
             input_val = getAngle360()
 
             # Establish Input value for PID
-            input = convert(input_val , pot_min, pot_max, -180, 180)
+            input = convert(input_val , pot_min, pot_max, self.minStuur, self.maxStuur) #-180, 180)
 
             # Compute new output from the PID according to the systems current value
             output = self.myPID(input)
 
             if (output > 0):
                 # Need to move motor forward
-                pwm_val = output
+                pwm_val = int(output)
+                self.stuurDIR = True
             elif (output < 0):
-                pwm_val = abs(output)
-            print("gewenste positie => ", 0, " | ", input, " <= gemeten positie" ," | ", output)
+                pwm_val = int(abs(output))
+                self.stuurDIR = False
+            self.stuurPWM.duty_u16(pwm_val)
+
+            print("gewenste positie => ", self.myPID.setpoint, " | ", input, " <= gemeten positie" ," | ", output)
 
 
     def rijden(self, stuur, richting, reserve1, reserve2):
