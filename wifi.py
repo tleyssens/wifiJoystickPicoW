@@ -6,7 +6,7 @@ import config
 import machine
 
 def wait_wlan(wlan):
-    max_wait = 10
+    max_wait = 20
     while max_wait > 0:
         if wlan.status() < 0 or wlan.status() >= 3:
             break

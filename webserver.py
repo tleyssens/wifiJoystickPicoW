@@ -7,7 +7,7 @@ from ws_connection import ClientClosedError
 from ws_server import WebSocketServer, WebSocketClient
 
 # tires = tires.Tires()
-zitmaaier = zitmaaier.Zitmaaier()
+zitmaaier = zitmaaier.Zitmaaier(-25, 25, 30000)
 deadline = time.ticks_add(time.ticks_ms(), 300)
 
 class TestClient(WebSocketClient):
@@ -22,7 +22,7 @@ class TestClient(WebSocketClient):
             msg = msg.decode("utf-8")
             msg = msg.split("\n")[-2]
             msg = msg.split(" ")
-            print(msg[0])
+
             deadline = time.ticks_add(time.ticks_ms(), 300)
             
             # tires.apply_power(int(msg[0]), int(msg[1]), int(msg[2]), int(msg[3]))

@@ -39,6 +39,7 @@ class WebSocketServer:
 
     def _accept_conn(self, listen_sock):
         cl, remote_addr = listen_sock.accept()
+        sleep(0.1) # soms blijft programma hangen na volgende regel
         print("Client connection from:", remote_addr)
 
         if len(self._clients) >= self._max_connections:

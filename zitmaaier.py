@@ -23,8 +23,11 @@ pot_min = 0
 # Maximum Potentiometer Input Value (determine through experimentation)
 pot_max = 360
 
-
+Kp = 7;  # Proportional Gain
+Ki = 7;  # Integral Gain
+Kd = 0.05;  # Derivitive Gain
 interval = 20
+neutraalTijd = 1000
 
 def convert(x, i_m, i_M, o_m, o_M):
     return max(min(o_M, (x - i_m) * (o_M - o_m) // (i_M - i_m) + o_m), o_m)
@@ -40,20 +43,24 @@ def getAngle360():
 
 
 class Zitmaaier():
-    def __init__(self, minStuur, maxStuur):
+    def __init__(self, minStuur, maxStuur, pwmMaxStuur):
         self.minStuur = minStuur
         self.maxStuur = maxStuur
         self.previousMillis = 0
         self.stuurPWM = PWM(Pin(14, Pin.OUT), freq=500, duty_u16=0)
-        self.stuurDIR = Pin(15, Pin.OUT, value=0)
+        self.stuurDIR = Pin(15, Pin.OUT)
 
         self.neutraal = Pin(9, Pin.IN,)
-        self.vooruit = Pin(10, Pin.OUT, value=0)
+        self.vooruit = Pin(10, Pin.OUT)
         self.achteruit = Pin(11, Pin.OUT, value=0)
+        self.naarNeutraalTijd = 0
+        self.previousRichting = 0
+        self.stop = False
         #Initialize PID Controller
-        self.myPID = PID(7, 7, 0.01, setpoint=90, scale='us')
+        self.myPID = PID(Kp, Ki, Kd, setpoint=1, scale='us')
         self.myPID.auto_mode = True
-        self.myPID.output_limits = [-65535, 65535]
+        # Max snelheid stuurmotor
+        self.myPID.output_limits = [-pwmMaxStuur, pwmMaxStuur]
         self.myPID.sample_time = 20
 
     def process(self):
@@ -68,7 +75,7 @@ class Zitmaaier():
             input_val = getAngle360()
 
             # Establish Input value for PID
-            input = convert(input_val , pot_min, pot_max, self.minStuur, self.maxStuur) #-180, 180)
+            input = convert(input_val , pot_min, pot_max, -180, 180)
 
             # Compute new output from the PID according to the systems current value
             output = self.myPID(input)
@@ -76,16 +83,55 @@ class Zitmaaier():
             if (output > 0):
                 # Need to move motor forward
                 pwm_val = int(output)
-                self.stuurDIR = True
+                self.stuurDIR.value(0)
             elif (output < 0):
                 pwm_val = int(abs(output))
-                self.stuurDIR = False
+                self.stuurDIR.value(1)
             self.stuurPWM.duty_u16(pwm_val)
 
-            print("gewenste positie => ", self.myPID.setpoint, " | ", input, " <= gemeten positie" ," | ", output)
-
+            # print("gewenste positie => ", self.myPID.setpoint, " | ", input, " <= gemeten positie" ," | ", "stuurdir / pwm => ", self.stuurDIR.value(), " | ", self.stuurPWM.duty_u16())
+            print("Vooruit / Achteruit ", self.vooruit.value(), " | ", self.achteruit.value(), " | tijdStopCommando / tijd", self.naarNeutraalTijd , " | ", self.currentMillis)
+            if self.naarNeutraalTijd + neutraalTijd <= self.currentMillis and self.stop == True:
+                print("tijd ", self.naarNeutraalTijd + neutraalTijd)
+                self.vooruit.value(0)
+                self.achteruit.value(0)
+                self.stop = False
 
     def rijden(self, stuur, richting, reserve1, reserve2):
-        print("in rijden : stuur = ", stuur, " | richting = ", richting)
+        # print("in rijden : stuur = ", stuur, " | richting = ", richting)
+        stuur = convert(stuur, -100, 100, self.minStuur, self.maxStuur)
         self.myPID.setpoint = stuur
+        
+        if richting < -20:
+            self.stop = False
+            self.naarNeutraalTijd = 0
+            # Vooruit
+            self.achteruit.value(0)
+            self.vooruit.value(1)
+        elif richting > 20:
+            self.stop = False
+            self.naarNeutraalTijd = 0
+            # Achteruit
+            self.vooruit.value(0)
+            self.achteruit.value(1)
+        else:
+            if self.stop == True:
+                return
+            if self.previousRichting < -20:
+                # terugdraaien tot middenpositie
+                self.naarNeutraalTijd = ticks_ms()
+                self.vooruit.value(0)
+                self.achteruit.value(0)
+                sleep(0.1)
+                self.achteruit.value(1)
+            if self.previousRichting > 20:
+                # terugdraaien tot middenpositie
+                self.naarNeutraalTijd = ticks_ms()
+                self.vooruit.value(0)
+                self.achteruit.value(0)
+                sleep(0.1)
+                self.vooruit.value(1)
+            self.stop = True
+
+        self.previousRichting = richting
 

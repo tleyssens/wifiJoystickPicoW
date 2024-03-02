@@ -122,8 +122,6 @@ class JoystickController
 			const yPosition2 = distance2 * Math.sin(angle);
 		    const xPercent = parseFloat((xPosition2 / maxDistance).toFixed(4));
 		    const yPercent = parseFloat((yPosition2 / maxDistance).toFixed(4));
-		    // console.log(xPercent)
-			// console.log(yPercent)
 
             var degrees = angle * 180 / Math.PI;
 
@@ -149,7 +147,7 @@ class JoystickController
             var p3 = (right > 0) ? Math.round(((right * 45535) + 20000)) : 0;
             var p4 = (right < 0) ? Math.round(((right * -1 * 45535) + 20000)) : 0;
             
-		    self.value = { pin1: Math.round(xPercent*180), pin2: Math.round(yPercent*100), pin3: p3, pin4: p4 };
+		    self.value = { pin1: Math.round(xPercent*100), pin2: Math.round(yPercent*100), pin3: p3, pin4: p4 };
 		  }
 
 		function handleUp(event) 
