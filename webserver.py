@@ -1,13 +1,12 @@
 import wifi
 import time
-# import tires
-import zitmaaier
+import motorAS5600
 
 from ws_connection import ClientClosedError
 from ws_server import WebSocketServer, WebSocketClient
 
-# tires = tires.Tires()
-zitmaaier = zitmaaier.Zitmaaier(-25, 25, 30000)
+stuurmotor = motorAS5600.MotorAS5600(0, 17, 16, 14, 15)
+stuurmotor.setup(-25, 25, 30000)
 deadline = time.ticks_add(time.ticks_ms(), 300)
 
 class TestClient(WebSocketClient):
