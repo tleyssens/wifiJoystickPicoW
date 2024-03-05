@@ -2,6 +2,7 @@ from machine import Pin, I2C, PWM
 from time import sleep
 from time import ticks_ms
 from PID import PID
+from math import fmod
 
 # AS5600 specific
 AS5600_SCL = const(17)
