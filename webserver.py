@@ -1,12 +1,25 @@
 import wifi
 import time
-import motorAS5600
+import motor
+import as5600
+import zitmaaier
 
 from ws_connection import ClientClosedError
 from ws_server import WebSocketServer, WebSocketClient
+motorStuur = motor.Motor(14, 15)
+motorVoorAchter = motor.Motor(10, 11)
+AS5600Stuur = as5600.AS5600(0, 16, 17)
+AS5600VoorAchter = as5600.AS5600(1, 18, 19)
 
-stuurmotor = motorAS5600.MotorAS5600(0, 17, 16, 14, 15)
-stuurmotor.setup(-25, 25, 30000)
+zitmaaier = zitmaaier.Zitmaaier(motorStuur, motorVoorAchter, AS5600Stuur, AS5600VoorAchter)
+zitmaaier.setMinMaxStuur(-25,25)
+zitmaaier.setMaxPwmStuur(30000)
+zitmaaier.setMinMaxVoorAchter(-10, 10)
+zitmaaier.setMaxPwmVoorAchter(30000)
+zitmaaier.motorStuur.myPID.Kp = 10000
+zitmaaier.motorStuur.myPID.Ki = 7000
+zitmaaier.motorStuur.myPID.Kd = 5
+
 deadline = time.ticks_add(time.ticks_ms(), 300)
 
 class TestClient(WebSocketClient):
@@ -46,13 +59,18 @@ wifi.run()
 
 server = TestServer()
 server.start()
-
-while True:
-    zitmaaier.process()
-    server.process_all()
-    if time.ticks_diff(deadline, time.ticks_ms()) < 0:
-        # tires.apply_power(0,0,0,0)
-        zitmaaier.rijden(0,0,0,0)
-        deadline = time.ticks_add(time.ticks_ms(), 100000)
+try:
+    while True:
+        zitmaaier.process()
+        server.process_all()
+        if time.ticks_diff(deadline, time.ticks_ms()) < 0:
+            # tires.apply_power(0,0,0,0)
+            zitmaaier.rijden(0,0,0,0)
+            deadline = time.ticks_add(time.ticks_ms(), 100000)
+except KeyboardInterrupt:
+    zitmaaier.motorStuur.PWM = 0
+    zitmaaier.motorVoorAchter.PWM = 0
+    print('STOP')
+    machine.reset()
 
 server.stop()
