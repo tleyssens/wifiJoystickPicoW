@@ -71,6 +71,7 @@ except KeyboardInterrupt:
     zitmaaier.motorStuur.PWM = 0
     zitmaaier.motorVoorAchter.PWM = 0
     print('STOP')
-    machine.reset()
+    #machine.reset()
+    time.sleep(0.2)
 
 server.stop()

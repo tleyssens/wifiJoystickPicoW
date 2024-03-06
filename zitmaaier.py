@@ -94,7 +94,7 @@ class Zitmaaier():
             if restje < 300 or restje > 320:
                 pass
             else :
-                print("gewenste stuurpositie => ", self.motorStuur.myPID.setpoint, " | ", inputStuurPid, " <= gemeten positie" ," | ", "dir / pwm => ", self.motorStuur.DIR, " | ", self.motorStuur.PWM)
+                print("gewenste stuurpositie      => ", self.motorStuur.myPID.setpoint, " | ", inputStuurPid, " <= gemeten positie" ," | ", "dir / pwm => ", self.motorStuur.DIR, " | ", self.motorStuur.PWM)
                 print("gewenste voorachterpositie => ", self.motorVoorAchter.myPID.setpoint, " | ", inputVoorAchterPid, " <= gemeten positie" ," | ","dir / pwm", self.motorVoorAchter.DIR, " | ", self.motorVoorAchter.PWM)
 
     def rijden(self, stuur, voorachter, reserve1, reserve2):
@@ -102,5 +102,5 @@ class Zitmaaier():
         stuur = convert(stuur, -100, 100, self.motorStuur.minStuur, self.motorStuur.maxStuur)
         self.motorStuur.myPID.setpoint = stuur
 
-        voorachter = convert(voorachter, -100, 100, self.motorVoorAchter.minStuur, self.motorVoorAchter.maxStuur)
+        voorachter = convert(voorachter, -100, 100, self.motorVoorAchter.minVoorAchter, self.motorVoorAchter.maxVoorAchter)
         self.motorVoorAchter.myPID.setpoint = voorachter
