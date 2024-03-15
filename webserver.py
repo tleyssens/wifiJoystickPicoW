@@ -37,7 +37,6 @@ class TestClient(WebSocketClient):
 
             deadline = time.ticks_add(time.ticks_ms(), 300)
             
-            # tires.apply_power(int(msg[0]), int(msg[1]), int(msg[2]), int(msg[3]))
             zitmaaier.rijden(int(msg[0]), int(msg[1]), int(msg[2]), int(msg[3]))
         except ClientClosedError:
             print("Connection close error")
@@ -45,8 +44,6 @@ class TestClient(WebSocketClient):
         except Exception as e:
             print("exception:" + str(e) + "\n")
             raise e
-                
-
 
 class TestServer(WebSocketServer):
     def __init__(self):
@@ -64,8 +61,9 @@ try:
         zitmaaier.process()
         server.process_all()
         if time.ticks_diff(deadline, time.ticks_ms()) < 0:
-            # tires.apply_power(0,0,0,0)
             zitmaaier.rijden(0,0,0,0)
+            zitmaaier.motorStuur.PWM = 0
+            zitmaaier.motorVoorAchter.PWM = 0
             deadline = time.ticks_add(time.ticks_ms(), 100000)
 except KeyboardInterrupt:
     zitmaaier.motorStuur.PWM = 0
